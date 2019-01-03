@@ -11,7 +11,7 @@ class UsersController extends Controller
     public function __construct()
     {
         //必须登录才能操作的动作
-        $this->middleware('auth',['except'=>['show','create','store']
+        $this->middleware('auth',['except'=>['show','create','store','index']
         ]);
         //只有没有登录才能操作的动作
         $this->middleware('guest',['only'=>['create']]);//注册页面
@@ -65,5 +65,17 @@ class UsersController extends Controller
         session()->flash('success', '个人资料更新成功！');
 
         return redirect()->route('users.show', $user->id);
+    }
+    public function index()
+    {
+        $users = User::paginate(10);
+        return view('users.index',compact('users'));
+    }
+    public function destroy(User $user)
+    {
+        $this->authorize('destroy', $user);//虽然前端做了授权策略，但是控制器里也要做一次
+        $user->delete();
+        session()->flash('success','成功删除用户！');
+        return back();
     }
 }
