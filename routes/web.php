@@ -41,3 +41,15 @@ Route::delete('logout', 'SessionController@destroy')->name('logout');
 
 //邮件发送路由
 Route::get('signup/confirm/{token}','UsersController@confirmEmail')->name('confirm_email');
+
+/**
+ * 密码重置
+ */
+//显示重置密码的邮箱发送页面
+Route::get('password/reset', 'Auth\ForgotPasswordController@showLinkRequestForm')->name('password.request');
+//给邮箱发送重设链接操作
+Route::post('password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail')->name('password.email');
+//显示密码更新页面
+Route::get('password/reset/{token}', 'Auth\ResetPasswordController@showResetForm')->name('password.reset');
+//密码更新操作
+Route::post('password/reset', 'Auth\ResetPasswordController@reset')->name('password.update');
