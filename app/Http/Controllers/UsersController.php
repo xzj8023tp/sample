@@ -26,7 +26,7 @@ class UsersController extends Controller
     {
         $statuses = $user->statuses()
                          ->orderBy('created_at','desc')
-                         ->paginate(30);
+                         ->paginate(10);
         return view('users.show',compact('user','statuses'));
     }
     //注册用户
