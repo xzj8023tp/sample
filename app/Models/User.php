@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Notifications\ResetPassword;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Auth;
 
 class User extends Authenticatable
 {
@@ -57,7 +58,60 @@ class User extends Authenticatable
     //根据创建时间来倒序排序
     public function feed()
     {
-        return $this->statuses()
+        $user_ids = Auth::user()->attention->pluck('id')->toArray();//获取登录用户所关注的人的id
+        array_push($user_ids,Auth::user()->id);
+        return Status::whereIn('user_id',$user_ids)
+            ->with('user')
             ->orderBy('created_at', 'desc');
+//        return $this->statuses()
+//            ->orderBy('created_at', 'desc');
     }
+
+    /**
+     * 关联模型
+     * 粉丝与关注用户
+     */
+    //粉丝关联
+    public function fans()
+    {
+        /*
+         * 第一个参数：关联模型引用
+         * 第二个参数：两个关联模型的名称。默认是合并，例如：user_user,下面是自定义的
+         * 第三个参数：关联的模型在连接表里的外键名
+         * 第四个参数：要合并的模型（另一个模型）在连接表里的外键名
+         */
+        return $this->belongsToMany(User::class,'followers','user_id','follower_id');
+    }
+    //获取关注用户
+    public function attention()
+    {
+        return $this->belongsToMany(User::class,'followers','follower_id','user_id');
+    }
+
+    //关注用户
+    public function follow($user_ids)
+    {
+        //如果不是数组，则转化为数组
+        if (!is_array($user_ids))
+        {
+            $user_ids = compact('user_ids');
+        }
+        $this->attention()->sync($user_ids,false);//第二个参数，false表示不覆盖之前的数据
+    }
+    //取消关注
+    public function unfollow($user_ids)
+    {
+        //如果不是数组，则转化为数组
+        if (!is_array($user_ids))
+        {
+            $user_ids = compact('user_ids');
+        }
+        $this->attention()->detach($user_ids);
+    }
+    //判断当前用户是否关注某个用户
+    public function attention_or_not($user_id)
+    {
+        return $this->attention->contains($user_id);
+    }
+
 }
